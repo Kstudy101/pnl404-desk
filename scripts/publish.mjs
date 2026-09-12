@@ -10,6 +10,7 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { resolveSources } from "./source-paths.mjs";
 import { enhanceFibHtml } from "./enhance-fib.mjs";
+import { enhanceSopHtml } from "./enhance-sop.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const sources = resolveSources(ROOT);
@@ -32,10 +33,11 @@ const fibOutput = resolve(ROOT, "public/modules/fib/index.html");
 mkdirSync(dirname(fibOutput), { recursive: true });
 writeFileSync(fibOutput, fibHtml);
 console.log(`copy ${sources.fibHtml} -> ${fibOutput} (상승 구간 시각화 포함)`);
-copy(
-  sources.sopHtml,
-  resolve(ROOT, "public/modules/sop/index.html"),
-);
+const sopHtml = enhanceSopHtml(readFileSync(sources.sopHtml, "utf8"));
+const sopOutput = resolve(ROOT, "public/modules/sop/index.html");
+mkdirSync(dirname(sopOutput), { recursive: true });
+writeFileSync(sopOutput, sopHtml);
+console.log(`copy ${sources.sopHtml} -> ${sopOutput} (미해소 레벨 화면 포함)`);
 copy(
   sources.signalConfig,
   resolve(ROOT, "public/modules/board/signal_config.json"),

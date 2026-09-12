@@ -8,6 +8,7 @@ import { spawnSync } from "node:child_process";
 import { checkProject } from "../scripts/check.mjs";
 import { resolveSources } from "../scripts/source-paths.mjs";
 import { enhanceFibHtml } from "../scripts/enhance-fib.mjs";
+import { enhanceSopHtml } from "../scripts/enhance-sop.mjs";
 
 const sourceRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const assetsOnly = { harness: false, assets: true };
@@ -148,10 +149,10 @@ test("source checks warn about snapshot reuse without running a producer", (t) =
 test("publish uses configured raw projects from an unrelated working directory", (t) => {
   const root = fixture(t), raw = resolveSources(root);
   mkdirSync(join(root, "scripts"));
-  for (const script of ["publish.mjs", "source-paths.mjs", "enhance-fib.mjs"]) cpSync(join(sourceRoot, "scripts", script), join(root, "scripts", script));
+  for (const script of ["publish.mjs", "source-paths.mjs", "enhance-fib.mjs", "enhance-sop.mjs"]) cpSync(join(sourceRoot, "scripts", script), join(root, "scripts", script));
   const copies = [
     [raw.fibHtml, "public/modules/fib/index.html", '<html><head></head><body>configured fib<table id="mx"></table><script>const D={};</script></body></html>'],
-    [raw.sopHtml, "public/modules/sop/index.html", "configured sop"],
+    [raw.sopHtml, "public/modules/sop/index.html", '<html><head><title>SOP fixture</title></head><body>configured sop<script>const D={"symbols":[],"dist":{"buckets":[]}};</script></body></html>'],
     [raw.signalConfig, "public/modules/board/signal_config.json", "configured board config"],
   ];
   for (const [path, , content] of copies) {
@@ -162,7 +163,8 @@ test("publish uses configured raw projects from an unrelated working directory",
   const result = spawnSync(process.execPath, [join(root, "scripts/publish.mjs")], { cwd: dirname(root), encoding: "utf8" });
   assert.equal(result.status, 0, result.stderr);
   for (const [input, output, content] of copies) {
-    assert.equal(readFileSync(join(root, output), "utf8"), input === raw.fibHtml ? enhanceFibHtml(content) : content);
+    const expected = input === raw.fibHtml ? enhanceFibHtml(content) : input === raw.sopHtml ? enhanceSopHtml(content) : content;
+    assert.equal(readFileSync(join(root, output), "utf8"), expected);
     assert.equal(readFileSync(input, "utf8"), content);
   }
   assert.deepEqual(readFileSync(join(root, dataPath)), before);

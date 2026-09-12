@@ -21,7 +21,7 @@
 | 예약 갱신 | `.github/workflows/refresh-markets.yml` → Python → 검사 → 준비된 파일 배포 | 15분 예약, 이전 검증된 산출물 캐시. main 반영·원격 실행 전까지 운영 갱신 완료로 보고하지 않음 |
 | 기존 점수 | `public/modules/board/data.json`, `signal_config.json` → 전광판 상세 | 4H 점수·배점·잠정/보정·계산 시각은 기존 원본 의미 유지. 새 시세 갱신과 별도 |
 | 피보나치 | `pivot`의 `out/fib/fibdash_BTCUSDT.html` → `public/modules/fib/index.html` | 원본 D·매트릭스 유지 + `scripts/enhance-fib.mjs`로 데스크 시각화 연결 |
-| SOP | `pivot`의 `out/sop/sop_all.html` → `public/modules/sop/index.html` | publish가 통째로 복사 |
+| 미해소 레벨 (기존 SOP) | `pivot`의 `out/sop/sop_all.html` → `public/modules/sop/index.html` | `scripts/enhance-sop.mjs`로 표시 확장 재적용, 원본 D와 계산 의미 보존. 내부 주소 `sop` 유지 |
 | 전광판 설정 | `board`의 `signal_config.json` → 공개 설정 JSON | publish가 통째로 복사 |
 | 스냅샷 | `scripts/snapshot-board.py` → `board`의 `backend/app` → `data.json` | init_db와 recompute_board 실행: 단순 파일 검사가 아님 |
 | 게시 | `scripts/publish.mjs` → 순차 복사 → 선택적 스냅샷 → 선택적 배포 | 중간 실패 시 앞선 파일은 이미 바뀔 수 있음 |
