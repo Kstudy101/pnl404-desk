@@ -52,5 +52,5 @@ if (existsSync(py)) {
 }
 
 if (deploy) {
-  run("npx", ["--yes", "wrangler", "pages", "deploy", "public", "--project-name=pnl404-desk", "--commit-dirty=true"], ROOT);
+  run("npx", ["--yes", "wrangler", "deploy"], ROOT);
 }

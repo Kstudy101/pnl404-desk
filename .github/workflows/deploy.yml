@@ -16,4 +16,4 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: d1058156eb886528d9b67d52a6de410a
-          command: pages deploy public --project-name=pnl404-desk
+          command: deploy

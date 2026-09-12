@@ -22,4 +22,4 @@ node scripts/publish.mjs --deploy
 
 `publish.mjs` 는 피보나치·SOP HTML 을 복사하고, 스윙전광판 백엔드 venv 가 있으면 전광판 `data.json` 을 다시 계산한다.
 
-GitHub `main` 푸시도 Cloudflare Pages (`pnl404-desk`) 로 올라간다. 저장소 시크릿 `CLOUDFLARE_API_TOKEN` 이 필요하다.
+GitHub `main` 푸시도 Cloudflare Worker (`pnl404-desk`) 로 올라간다. 저장소 시크릿 `CLOUDFLARE_API_TOKEN` 이 필요하다.
