@@ -15,10 +15,10 @@ description: "PNL404 원본 HTML·설정 수집, 전광판 data.json 갱신, pub
 
 ## 실행
 
-- 전체 로컬 수집 요청: 사전 확인 후 `npm run publish`. 세 복사는 순차적이며 부분 실패할 수 있으므로 실행 전후 diff와 생성 시각을 대조한다.
+- 전체 최신화 요청: 사전 확인 후 `npm run refresh:all`. 원본 계산·시장 수집·게시를 임시 경로에서 수행하고 최신성·정적 검사를 통과한 산출물만 반영한다. 원본 HTML 수집만 필요하면 `npm run publish`를 사용한다.
 - 일부 모듈만 요청: 해당 원본·대상만 처리한다. 전체 publish로 다른 모듈까지 갱신하지 않는다.
 - 새 전광판이 필요하지만 venv 없음: 기존 data.json 보존은 최신화 성공이 아니다. 필요한 환경과 미완료를 보고한다.
-- 갱신 후 배포 요청: `npm run publish` → `npm run check` → 기존 권한으로 Wrangler 배포를 수행한다. 검사 전에 배포가 이어지는 `npm run deploy`는 검증 단계를 대신하지 않는다.
+- 전체 갱신 후 배포 요청: `npm run refresh:all -- --deploy`를 사용한다. 통합 실행기는 수집 → 검증 → 산출물 반영 → 기존 권한의 Wrangler 배포 순서를 지킨다. Windows의 시간별 예약도 같은 실행기를 사용하며 로그·예약 종료 코드·실제 운영 시각을 대조한다.
 - 이미 준비된 public만 배포 요청: `npm run check` 후 `npx --yes wrangler deploy`. 배포 대상은 wrangler 설정과 사용자 요청을 대조한다. 셸에서 실행 파일을 찾지 못하면 실제 설치 경로를 확인하고, Windows `.cmd` 실행 방식은 현재 환경에 맞춘다.
 
 ## 확인

@@ -17,7 +17,7 @@ function blankResult(key, now, error) {
 
 /** Explicit cache seam for offline expiry/error tests and the local dev server.
  * Cloudflare's Cache API is datacenter-local, so the cron warms its own location.
- * Other locations fetch on access after 15 minutes. Cache retention is 24 hours;
+ * Other locations fetch on access after one hour. Cache retention is 24 hours;
  * freshness is checked independently because Cache API has no stale-if-error.
  */
 export function createMarketService({fetchImpl = fetch, cache = globalThis.caches?.default, now = Date.now} = {}) {
@@ -154,7 +154,7 @@ export default {
     }
     const service = createMarketService();
     // Current dated catalogues fit within 50 upstream fetches per cron. Charts are
-    // fetched on demand and each range independently expires after 900 seconds.
+    // fetched on demand and each range independently expires after 3600 seconds.
     const work = (async()=>{
       for(const market of MARKETS) {
         const result = await service.market(market.id,{force:true});

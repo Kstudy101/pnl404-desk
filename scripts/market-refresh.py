@@ -20,7 +20,7 @@ import urllib.request
 from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parents[1]
-REFRESH_SECONDS = 900
+REFRESH_SECONDS = 3600
 
 
 def utc_now() -> str:
@@ -105,7 +105,7 @@ def merge_snapshot(previous: dict, results: dict, errors: dict, fetched_at: str)
     return {**previous, "schema_version": 1, "collector": "python-finance-packages", "generated_at": fetched_at,
             "next_refresh_at": next_refresh(fetched_at), "stale": bool(errors) or len(results) < len(items), "items": items, "markets": markets,
             "notes": ["주식은 FinanceDataReader·yfinance 일봉, 암호화폐는 CoinGecko 시세를 사용합니다.",
-                      "15분마다 수신 여부를 확인합니다. 일봉 값은 거래일 데이터가 바뀔 때 변경됩니다.",
+                      "1시간마다 수신 여부를 확인합니다. 일봉 값은 거래일 데이터가 바뀔 때 변경됩니다.",
                       *[f"{key}: 이전 수신값 유지 · {value}" for key, value in list(errors.items())[:10]]],
             "collection": {"requested": len(items), "refreshed": len(results), "failed": len(items) - len(results)}}
 
@@ -225,7 +225,7 @@ def main(argv=None) -> int:
     parser.add_argument("--symbols", help="Comma-separated namespaced IDs for a bounded smoke run")
     parser.add_argument("--no-history", action="store_true")
     parser.add_argument("--start", default=(date.today() - timedelta(days=370)).isoformat())
-    parser.add_argument("--crypto-history-budget", type=int, default=20)
+    parser.add_argument("--crypto-history-budget", type=int, default=100)
     parser.add_argument("--crypto-min-interval", type=float, default=momentum.CRYPTO_MIN_INTERVAL)
     args = parser.parse_args(argv)
     if not 0 <= args.crypto_history_budget <= 100 or args.crypto_min_interval < 2:

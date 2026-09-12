@@ -153,7 +153,7 @@ test("publish uses configured raw projects from an unrelated working directory",
   const copies = [
     [raw.fibHtml, "public/modules/fib/index.html", '<html><head></head><body>configured fib<table id="mx"></table><script>const D={};</script></body></html>'],
     [raw.sopHtml, "public/modules/sop/index.html", '<html><head><title>SOP fixture</title></head><body>configured sop<script>const D={"symbols":[],"dist":{"buckets":[]}};</script></body></html>'],
-    [raw.signalConfig, "public/modules/board/signal_config.json", "configured board config"],
+    [raw.signalConfig, "public/modules/board/signal_config.json", '{"fixture":"configured board config"}'],
   ];
   for (const [path, , content] of copies) {
     mkdirSync(dirname(path), { recursive: true });
@@ -161,7 +161,8 @@ test("publish uses configured raw projects from an unrelated working directory",
   }
   const before = readFileSync(join(root, dataPath));
   const result = spawnSync(process.execPath, [join(root, "scripts/publish.mjs")], { cwd: dirname(root), encoding: "utf8" });
-  assert.equal(result.status, 0, result.stderr);
+  assert.equal(result.status, 2, result.stderr);
+  assert.match(result.stdout, /PARTIAL legacy/);
   for (const [input, output, content] of copies) {
     const expected = input === raw.fibHtml ? enhanceFibHtml(content) : input === raw.sopHtml ? enhanceSopHtml(content) : content;
     assert.equal(readFileSync(join(root, output), "utf8"), expected);

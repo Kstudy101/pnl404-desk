@@ -25,7 +25,7 @@ function frontend() {
   let timerId = 0;
   const context = createContext({ model, document, window: { addEventListener(key, callback) { windowEvents[key] = callback; } }, localStorage: { getItem: key => storage.get(key) ?? null, setItem(key, value) { storage.set(key, value); } }, AbortController, URLSearchParams, Intl, Date, console,
     setInterval: () => 0, setTimeout(fn, delay) { timers.set(++timerId, { fn, delay }); return timerId; }, clearTimeout(id) { timers.delete(id); },
-    fetch(url) { return new Promise(resolve => requests.push({ url: String(url), resolve: value => resolve({ ok: true, json: async () => value }) })); },
+    fetch(url) { return new Promise((resolve, reject) => requests.push({ url: String(url), resolve: value => resolve({ ok: true, json: async () => value }), reject })); },
   });
   const source = readFileSync(new URL('../public/modules/board/board.mjs', import.meta.url), 'utf8').replace(/^import \{([^}]+)\} from '\.\/board-model\.mjs';/, (_match, members) => `const {${members.replace('escapeHtml as html', 'escapeHtml: html')}} = model;`);
   runInContext(source, context, { filename: 'board.mjs' });
@@ -146,4 +146,37 @@ test('closing detail, changing sort and syncing favorites retain the selected 21
   assert.ok(markup.indexOf('SECOND') < markup.indexOf('FIRST'), 'sort uses 21-day returns, whose ordering is opposite the 7-day returns');
   assert.ok(markup.includes('+21.00%') && markup.includes('-21.00%'));
   assert.ok(!markup.includes('70.00%'));
+});
+
+test('the shared hourly refresh reloads legacy scores once, updates open detail and retains prior values on failure', async () => {
+  const app = frontend(), bitcoin = item('crypto:bitcoin', 'BTC', 'Bitcoin');
+  app.state.market = 'crypto'; app.state.items.set(bitcoin.id, bitcoin); app.state.universe.set('crypto', new Set([bitcoin.id]));
+  app.state.detailId = bitcoin.id; app.element('detail-dialog').open = true;
+  const snapshot = (score, generated_at) => ({ generated_at, candle_closed: true, items: [{ symbol: 'BTCUSDT', display: 'BTC', score, direction: 'long' }] });
+  const old = snapshot(11, '2026-09-12T00:00:00Z'), updated = snapshot(72, '2026-09-13T03:05:00Z');
+  app.state.legacy = old;
+  assert.equal(app.requests.filter(request => request.url === './data.json').length, 0, 'startup does not race a separate one-off legacy fetch');
+  async function refresh(payload, fail = false) {
+    const offset = app.requests.length, pending = app.call('refreshController.run');
+    await Promise.resolve();
+    const requests = app.requests.slice(offset), legacy = requests.filter(request => request.url === './data.json');
+    assert.equal(legacy.length, 1);
+    const sameRun = app.call('refreshController.run'); assert.strictEqual(sameRun, pending);
+    requests.filter(request => request.url.startsWith('/api/markets')).forEach(request => request.resolve({ items: [bitcoin], generated_at: updated.generated_at, stale: false, notes: [] }));
+    if (fail) legacy[0].reject(new Error('fixture unavailable')); else legacy[0].resolve(payload);
+    for (let i = 0; i < 20 && !app.requests.slice(offset).some(request => request.url.startsWith('/api/chart')); i++) await Promise.resolve();
+    const chart = app.requests.slice(offset).find(request => request.url.startsWith('/api/chart'));
+    assert.ok(chart, 'the same refresh also reloads the open price chart');
+    chart.resolve({ id: bitcoin.id, currency: 'USD', points: [{ time: '2026-09-11T00:00:00Z', value: 100 }, { time: '2026-09-12T00:00:00Z', value: 200 }], source: 'fixture' });
+    await pending;
+  }
+  await refresh(updated);
+  assert.equal(app.state.legacy.generated_at, updated.generated_at); assert.equal(app.state.legacy.items[0].score, 72);
+  assert.ok(app.element('legacy-score').innerHTML.includes('72 롱')); assert.equal(app.state.legacyError, false);
+  await refresh(null, true);
+  assert.strictEqual(app.state.legacy, updated); assert.equal(app.state.legacyError, true);
+  assert.ok(app.element('legacy-score').innerHTML.includes('72 롱'));
+  assert.match(app.element('announcer').textContent, /갱신 확인에 실패.*마지막 데이터를 유지/);
+  await refresh({ items: null });
+  assert.strictEqual(app.state.legacy, updated); assert.equal(app.state.legacyError, true);
 });

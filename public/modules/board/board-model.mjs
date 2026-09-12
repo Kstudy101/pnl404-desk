@@ -1,4 +1,4 @@
-export const REFRESH_INTERVAL = 15 * 60 * 1000;
+export const REFRESH_INTERVAL = 60 * 60 * 1000;
 export const FAVORITES_KEY = 'pnl404:watchlist:v1';
 export const PREFERENCES_KEY = 'pnl404:board:view:v1';
 export const MOMENTUM_PERIODS = [7, 14, 21, 28];

@@ -26,8 +26,18 @@ export function extractSopData(html) {
 
 /** Reapply the desk presentation after copying a fresh raw artifact. D is untouched. */
 export function enhanceSopHtml(html) {
-  const before = extractSopData(html).literal;
+  const original = extractSopData(html), before = original.literal;
   if (!/<\/head>/i.test(html) || !/<\/body>/i.test(html)) throw new Error('미해소 레벨 HTML의 head/body 경계를 찾을 수 없습니다.');
+  let prefix = html.slice(0, original.start);
+  const refreshMeta = /<meta\b(?=[^>]*\bhttp-equiv\s*=\s*["']refresh["'])[^>]*>/gi;
+  let hasRefresh = false;
+  prefix = prefix.replace(refreshMeta, () => {
+    if (hasRefresh) return '';
+    hasRefresh = true;
+    return '<meta http-equiv="refresh" content="3600">';
+  });
+  if (!hasRefresh) prefix = prefix.replace(/<\/head>/i, '<meta http-equiv="refresh" content="3600">\n</head>');
+  html = prefix + original.literal + html.slice(original.end);
   html = html.replace(/<title\b[^>]*>[\s\S]*?<\/title>/i, '<title>미해소 레벨 · PNL404</title>');
   if (!/name=["']viewport["']/i.test(html)) html = html.replace(/<\/head>/i, '<meta name="viewport" content="width=device-width, initial-scale=1">\n</head>');
   if (!html.includes('id="pnl404-sop-view-style"')) html = html.replace(/<\/head>/i, '<link id="pnl404-sop-view-style" rel="stylesheet" href="./levels-view.css">\n</head>');

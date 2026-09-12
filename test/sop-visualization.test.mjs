@@ -12,12 +12,12 @@ const literalIn = html => html.match(/const D=(.*?);const f=/s)?.[1];
 const originalHtml = () => '<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>SOP fixture</title><meta http-equiv="refresh" content="600"></head><body><h1 id="t"></h1><div id="wrap"><div id="dist"></div><div id="stats"></div><div id="sections"></div><div id="foot"></div></div><script>const D=' + ORIGINAL_LITERAL + ';const f=x=>x;</script></body></html>';
 const numberIn = value => Number(String(value).replace(/,/g, ''));
 
-test('SOP publishing preserves the independent original data, timestamps and refresh cadence exactly once', () => {
+test('SOP publishing preserves independent original data and timestamps while normalizing hourly reload exactly once', () => {
   assert.equal(createHash('sha256').update(ORIGINAL_LITERAL).digest('hex'), '30ce2ba1d3d97a9bc615354cb6263fd591a371ccafb934051d6e28b0fd2dee75');
   const raw = originalHtml(), enhanced = enhanceSopHtml(raw);
   assert.equal(literalIn(enhanced), ORIGINAL_LITERAL);
   assert.equal(enhanceSopHtml(enhanced), enhanced);
-  assert.match(enhanced, /http-equiv="refresh" content="600"/);
+  assert.match(enhanced, /http-equiv="refresh" content="3600"/);
   assert.equal((enhanced.match(/levels-view\.mjs/g) || []).length, 1);
   assert.equal((enhanced.match(/levels-view\.css/g) || []).length, 1);
   assert.equal((enhanced.match(/name="viewport"/g) || []).length, 1);

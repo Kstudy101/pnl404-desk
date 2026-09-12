@@ -1,8 +1,8 @@
 name: Refresh swing market data
 
 on:
-  schedule:
-    - cron: '7,22,37,52 * * * *'
+  # The local hourly task owns all three modules and their publication.
+  # This market-only collector is a manual fallback to avoid competing writes.
   workflow_dispatch:
 
 permissions:
@@ -16,7 +16,7 @@ jobs:
   refresh:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    timeout-minutes: 13
+    timeout-minutes: 55
     steps:
       - name: Check deployment credentials before collecting data
         env:
@@ -50,7 +50,7 @@ jobs:
         shell: bash
         run: |
           set +e
-          npm run refresh:markets -- --crypto-history-budget 20 --crypto-min-interval 16
+          npm run refresh:markets -- --crypto-history-budget 100 --crypto-min-interval 16
           status=$?
           set -e
           if [ "$status" -eq 2 ]; then

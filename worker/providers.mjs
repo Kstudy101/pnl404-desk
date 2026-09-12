@@ -1,8 +1,8 @@
 import {MARKETS, JAPAN_SEEDS, US_SEEDS, KOREAN_NAMES, CRYPTO_NAMES, SP500_VERIFIED, emptyItem} from './catalogue.mjs';
 import savedCatalogue from './generated-catalogue.mjs';
 
-export const REFRESH_MS = 15 * 60 * 1000;
-export const PROVIDER_NOTE = '공개 웹 시세 개발 연결 · 제공처 지연·호출 제한 가능 · 15분 조회 주기는 실시간 시세 보장이 아닙니다.';
+export const REFRESH_MS = 60 * 60 * 1000;
+export const PROVIDER_NOTE = '공개 웹 시세 개발 연결 · 제공처 지연·호출 제한 가능 · 1시간 조회 주기는 실시간 시세 보장이 아닙니다.';
 export const numeric = value => typeof value === 'number' && Number.isFinite(value) ? value : typeof value === 'string' && value.trim() && /^-?[\d,.]+$/.test(value) && Number.isFinite(Number(value.replaceAll(',',''))) ? Number(value.replaceAll(',','')) : null;
 export const iso = value => { const date = new Date(value); return value != null && Number.isFinite(date.getTime()) ? date.toISOString() : null; };
 export const registry = [...new Map([...JAPAN_SEEDS,...US_SEEDS,...savedCatalogue].map(item=>[item.id,item])).values()];

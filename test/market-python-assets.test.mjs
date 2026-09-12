@@ -20,7 +20,7 @@ test('Python assets are the stock source of truth and a new artifact is visible 
   assert.equal((await load('/api/markets?market=us')).items[0].price,201);
   const chart=await load('/api/chart?id=us:AAPL&range=7d');
   assert.equal(chart.source,'yfinance (일봉)');assert.equal(chart.points.length,2);assert.equal(chart.stale,false);
-  now+=900001;
+  now+=3_600_001;
   const old=await load('/api/chart?id=us:AAPL&range=7d');
   assert.equal(old.stale,true);assert.equal(old.generated_at,chart.generated_at);assert.equal(old.updated_at,chart.updated_at);
   assert.equal(calls,0);

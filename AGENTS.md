@@ -10,4 +10,4 @@
 
 사용자가 확인한 raw data 원본은 바탕화면의 `피봇스윙매매`와 `스윙전광판`이다. `Desktop/PNL404`는 별도 프로젝트이며 원본 폴더의 부모가 아니다. 실제 경로는 [source-projects.json](source-projects.json)을 따른다.
 
-이 프로젝트는 공개 시장 데이터 표시용 정적 사이트다. 데이터 생성 원본과 배포 산출물의 구분은 [프로젝트 지도](.claude/skills/pnl404-orchestrator/references/project-map.md)를 따른다. 사용자 변경을 보존하고, 요청된 작업의 권한을 이어서 사용한다. `main` 푸시는 운영 배포를 유발한다.
+이 프로젝트는 공개 시장 데이터 표시용 정적 사이트다. 데이터 생성 원본과 배포 산출물의 구분은 [프로젝트 지도](.claude/skills/pnl404-orchestrator/references/project-map.md)를 따른다. 사용자 변경을 보존하고, 요청된 작업의 권한을 이어서 사용한다. `main` 푸시는 검사만 실행한다. 운영 자동 배포는 매시간 통합 갱신 작업이 담당하고, 수동 배포는 검증된 산출물에 한정한다.

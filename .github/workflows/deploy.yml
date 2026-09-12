@@ -1,8 +1,8 @@
 name: Deploy pnl404.com
 
 on:
-  push:
-    branches: [main]
+  # Automatic publishing is owned by the hourly local pipeline. A code push
+  # must not overwrite fresher operational snapshots with committed old data.
   workflow_dispatch:
 
 concurrency:

@@ -12,7 +12,7 @@ const state = {
   market: Object.hasOwn(MARKETS, preferences.market) || preferences.market === 'favorites' ? preferences.market : 'us', group: 'all', sort: ['market_cap', 'momentum_desc', 'momentum_asc', 'name', 'price_desc'].includes(preferences.sort) ? preferences.sort : 'market_cap', view: preferences.view === 'cards' ? 'cards' : 'list', period: MOMENTUM_PERIODS.includes(Number(preferences.period)) ? Number(preferences.period) : 7, limit: 100,
   items: new Map(favorites.map((item) => [item.id, item])), favorites: new Map(favorites.map((item) => [item.id, item])), universe: new Map(), extras: new Set(), meta: new Map(), apiLoaded: new Set(), pendingMarkets: new Map(), catalog: null, catalogPromise: null, loading: true,
   searchResults: [], searchIndex: -1, searchSequence: 0, searchTimer: null, searchAbort: null, composing: false,
-  detailId: null, range: '7d', chartSequence: 0, chartAbort: null, chartCache: new Map(), activeGeometry: null, activeChart: null, chartPointIndex: 0, legacy: null,
+  detailId: null, range: '7d', chartSequence: 0, chartAbort: null, chartCache: new Map(), activeGeometry: null, activeChart: null, chartPointIndex: 0, legacy: null, legacyError: false,
 };
 
 function announce(message) { $('announcer').textContent = message; }
@@ -197,16 +197,31 @@ async function loadMarket(market) {
   state.pendingMarkets.set(market, task);
   return task;
 }
+async function loadLegacy() {
+  try {
+    const data = await fetchJson('./data.json');
+    if (!Array.isArray(data?.items)) throw new Error('기존 점수 형식 오류');
+    state.legacy = data;
+    state.legacyError = false;
+    return true;
+  } catch {
+    state.legacyError = true;
+    return false;
+  } finally {
+    const item = state.items.get(state.detailId);
+    if (item && $('detail-dialog').open) renderLegacy(item);
+  }
+}
 const refreshController = createRefreshController(async () => {
   $('refresh').disabled = true;
   $('refresh').classList.add('is-refreshing');
   updateCountdown();
   try {
     const markets = new Set([...state.apiLoaded, ...[...state.favorites.values()].map((item) => item.market), ...(state.market === 'favorites' ? [] : [state.market])]);
-    await Promise.allSettled([...markets].map(loadMarket));
+    await Promise.allSettled([...markets].map(loadMarket).concat(loadLegacy()));
     if (state.detailId && $('detail-dialog').open) await loadChart({ force: true });
     const errors = [...markets].filter((market) => state.meta.get(market)?.error);
-    announce(errors.length ? '갱신 확인 실패. 마지막 데이터를 유지합니다.' : '갱신 확인을 마쳤습니다. 시세의 기준 시각을 확인해 주세요.');
+    announce(errors.length || state.legacyError ? '일부 자료의 갱신 확인에 실패했습니다. 마지막 데이터를 유지합니다.' : '갱신 확인을 마쳤습니다. 시세와 점수의 기준 시각을 확인해 주세요.');
   } finally { $('refresh').disabled = false; $('refresh').classList.remove('is-refreshing'); }
 });
 function updateCountdown() {
@@ -316,6 +331,7 @@ function renderLegacy(item) {
   const number = (value) => isNumber(value) ? value.toFixed(1) : '—';
   const direction = matched.direction === 'long' ? '롱' : matched.direction === 'short' ? '숏' : '중립';
   $('legacy-score').innerHTML = `<details class="legacy-panel"><summary>과거 4시간봉 스윙 점수 <b>${html(matched.score)} ${direction}</b>${closed ? '' : '<span class="badge">당시 잠정 봉</span>'} ${degraded ? '<span class="badge">결측 보정</span>' : ''}</summary><div class="legacy-meta"><span>과거 계산 시각 ${html(formatTime(time))}</span><span>·</span><span>${closed ? '완성된 봉' : '당시 진행 중인 봉의 잠정 점수'}</span>${degraded ? '<span class="badge">결측 보정</span>' : ''}</div>${detail ? `<table class="legacy-table"><thead><tr><th scope="col">항목</th><th scope="col">롱</th><th scope="col">숏</th><th scope="col">배점</th></tr></thead><tbody>${(detail.components || []).map((component) => `<tr><td>${html(component.label)}${component.degraded ? ' · 보정' : ''}</td><td>${number(component.points_long)}</td><td>${number(component.points_short)}</td><td>${number(component.points_max)}</td></tr>`).join('')}</tbody></table>` : '<p class="legacy-note">이 스냅샷에는 항목별 배점이 없습니다.</p>'}<p class="legacy-note">이전 4시간봉 계산기의 보관 스냅샷입니다. 현재 일봉 모멘텀은 위의 기간 수익률로 확인하세요. 시세 새로고침은 이 점수를 재계산하지 않습니다.</p></details>`;
+  if (state.legacyError) $('legacy-score').insertAdjacentHTML('afterbegin', '<p class="legacy-note">점수 갱신 확인 실패 · 이전 점수와 계산 시각을 유지합니다.</p>');
 }
 function openDetail(id) {
   if (!state.items.has(id)) return;
@@ -440,5 +456,4 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 window.addEventListener('storage', (event) => { if (event.key !== FAVORITES_KEY) return; const items = parseFavorites(event.newValue); state.favorites = new Map(items.map((item) => [item.id, item])); mergeItems(items); render(); updateDetailFavorite(); });
 setInterval(() => { updateCountdown(); if (document.visibilityState === 'visible') refreshController.tick(); }, 1000);
 render();
-fetchJson('./data.json').then((data) => { state.legacy = data; if (state.detailId) renderDetailQuote(); }).catch(() => { /* Swing details are optional and never used as market prices. */ });
 loadCatalog().catch(() => { state.loading = false; render(); }).finally(() => refreshController.run());

@@ -2,10 +2,11 @@
   "name": "pnl404-desk",
   "private": true,
   "type": "module",
-  "description": "PNL404 탭 셸 — 스윙전광판 · 피보나치 · SOP",
+  "description": "PNL404 탭 셸 — 전광판 · 피보나치 · 미해소 레벨",
   "scripts": {
     "dev": "node scripts/market-dev.mjs",
     "refresh:markets": "node scripts/market-python.mjs",
+    "refresh:all": "node scripts/refresh-all.mjs",
     "refresh:markets:web": "node scripts/market-refresh.mjs",
     "refresh:sp500": "node scripts/market-import-sp500.mjs",
     "check": "node scripts/check.mjs",

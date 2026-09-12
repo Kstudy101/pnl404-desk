@@ -44,6 +44,7 @@ print(json.dumps([item, history], allow_nan=False))
   assert.equal(item.fetched_at, '2026-09-12T15:00:00Z');
   assert.equal(item.market_cap_source, 'previous provider');
   assert.equal(history.interval, '1d');
+  assert.equal(Date.parse(history.next_refresh_at) - Date.parse(history.generated_at), 3_600_000);
   assert.deepEqual(history.points.map(point => point.value), [100, 110]);
   assert.equal(normalizeItem(item).price_basis, 'daily_close');
   assert.equal(quoteStatus(normalizeItem(item), Date.parse(item.fetched_at)).kind, 'stale');
@@ -65,6 +66,7 @@ print(json.dumps(m.merge_snapshot(previous, {'us:AAPL':good}, {'us:MSFT':'offlin
   assert.equal(retained.source, 'previous provider');
   assert.equal(retained.stale, true);
   assert.equal(snapshot.stale, true);
+  assert.equal(Date.parse(snapshot.next_refresh_at) - Date.parse(snapshot.generated_at), 3_600_000);
   assert.deepEqual(snapshot.collection, { requested: 2, refreshed: 1, failed: 1 });
 });
 
@@ -161,7 +163,9 @@ print(json.dumps({'snapshot':snapshot,'history':result[1]}, allow_nan=False))
   assert.equal(chart.source, 'yfinance (일봉)');
   assert.deepEqual(chartGeometry(chart.points).points.map(point => point.value), [100, 110]);
   assert.equal((await api('/api/search?q=Apple')).items[0].id, 'us:AAPL');
-  now += 900_000;
+  now += 3_599_999;
+  assert.equal((await api('/api/markets?market=us')).stale, false);
+  now++;
   const stale = await api('/api/markets?market=us');
   assert.equal(stale.stale, true);
   assert.equal(stale.generated_at, market.generated_at);

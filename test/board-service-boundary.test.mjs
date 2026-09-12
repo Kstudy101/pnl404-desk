@@ -13,7 +13,7 @@ function memoryCache() {
 const chartRequest = () => new Request('https://desk.test/api/chart?id=us%3AAAPL&range=7d');
 const json = value => new Response(JSON.stringify(value), { headers: { 'Content-Type': 'application/json' } });
 
-test('chart API expires after 900 seconds and a failed refresh preserves quote history and its age', async () => {
+test('chart API expires after one hour and a failed refresh preserves quote history and its age', async () => {
   let now = Date.parse('2026-09-12T15:00:00Z'), calls = 0, fail = false;
   const cache = memoryCache();
   const fetchImpl = async () => {
@@ -25,8 +25,8 @@ test('chart API expires after 900 seconds and a failed refresh preserves quote h
   const first = await load();
   assert.equal(first.points.at(-1).value, 201);
   assert.equal(first.stale, false);
-  assert.equal(Date.parse(first.next_refresh_at) - Date.parse(first.generated_at), 900_000);
-  now += 899_999;
+  assert.equal(Date.parse(first.next_refresh_at) - Date.parse(first.generated_at), 3_600_000);
+  now += 3_599_999;
   assert.deepEqual(await load(), first);
   assert.equal(calls, 1);
   now++;
@@ -34,7 +34,7 @@ test('chart API expires after 900 seconds and a failed refresh preserves quote h
   assert.equal(calls, 2);
   assert.equal(second.points.at(-1).value, 202);
   assert.notEqual(second.generated_at, first.generated_at);
-  now += 900_000;
+  now += 3_600_000;
   fail = true;
   const stale = await load();
   assert.equal(calls, 3);

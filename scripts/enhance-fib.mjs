@@ -35,7 +35,16 @@ export function enhanceFibHtml(html) {
   const original = extractFibData(html);
   // Display terminology may change; the embedded data literal must never change.
   const displayNames = (text) => text.replaceAll("레드존", "하단 밴드").replaceAll("블루존", "상단 밴드");
-  html = displayNames(html.slice(0, original.start)) + original.literal + displayNames(html.slice(original.end));
+  let prefix = displayNames(html.slice(0, original.start));
+  const refreshMeta = /<meta\b(?=[^>]*\bhttp-equiv\s*=\s*["']refresh["'])[^>]*>/gi;
+  let hasRefresh = false;
+  prefix = prefix.replace(refreshMeta, () => {
+    if (hasRefresh) return '';
+    hasRefresh = true;
+    return '<meta http-equiv="refresh" content="3600">';
+  });
+  if (!hasRefresh) prefix = prefix.replace(/<\/head>/i, '<meta http-equiv="refresh" content="3600">\n</head>');
+  html = prefix + original.literal + displayNames(html.slice(original.end));
   if (!/name=["']viewport["']/.test(html)) html = html.replace(/<\/head>/i, '<meta name="viewport" content="width=device-width, initial-scale=1">\n</head>');
   if (!html.includes('id="pnl404-fib-rise-style"')) html = html.replace(/<\/head>/i, '<link id="pnl404-fib-rise-style" rel="stylesheet" href="./zone-visualization.css">\n</head>');
   if (!html.includes('id="pnl404-fib-rise-script"')) html = html.replace(/<\/body>/i, '<script id="pnl404-fib-rise-script" type="module" src="./zone-visualization.mjs"></script>\n</body>');

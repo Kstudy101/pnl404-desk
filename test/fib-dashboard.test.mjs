@@ -18,13 +18,13 @@ const money = (value, digits = 0) => value.toLocaleString('en-US', { minimumFrac
 const date = value => new Date(value).toISOString().slice(5, 10);
 const close = (a, b) => assert.ok(Math.abs(a - b) < 1e-10, a + ' != ' + b);
 
-test('Fibonacci enhancer preserves the independent original D and 300-second reload exactly once', () => {
+test('Fibonacci enhancer preserves the independent original D and normalizes reload to one hour exactly once', () => {
   assert.equal(Buffer.byteLength(ORIGINAL_LITERAL), 85718);
   assert.equal(createHash('sha256').update(ORIGINAL_LITERAL).digest('hex'), '5e9199c673a415446c7982571e783494e74a694b5034f670369b1f6fc06d9311');
   const enhanced = enhanceFibHtml(rawHtml());
   assert.equal(extractFibData(enhanced).literal, ORIGINAL_LITERAL);
   assert.equal(enhanceFibHtml(enhanced), enhanced);
-  assert.match(enhanced, /http-equiv="refresh" content="300"/);
+  assert.match(enhanced, /http-equiv="refresh" content="3600"/);
   for (const asset of ['zone-visualization.mjs', 'zone-visualization.css', 'dashboard-view.mjs', 'dashboard-view.css']) {
     assert.equal(enhanced.split(asset).length - 1, 1, asset);
   }
@@ -111,7 +111,7 @@ test('the dashboard exposes its six sections, source timestamp, native controls 
   assert.match(shell, /aria-live="polite"/);
   assert.ok(shell.includes('datetime="' + new Date(data.now).toISOString() + '"'));
   assert.match(shell, /화면 새로고침은 데이터를 재계산하지 않습니다/);
-  assert.match(shell, /5분 주기 화면 새로고침/);
+  assert.match(shell, /1시간 주기 화면 새로고침/);
   assert.ok(!/NaN|Infinity|undefined/.test(shell));
 });
 
