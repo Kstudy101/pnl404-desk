@@ -1,0 +1,374 @@
+{
+  "spec_version": "1.0.0",
+  "updated_at": "2026-08-29",
+  "_comment": "바이낸스 선물 시그널 스코어보드 설정. 파라미터 변경은 코드가 아니라 이 파일에서만 한다.",
+
+  "project": {
+    "name": "signal-scoreboard",
+    "mode": "semi_auto",
+    "_mode_comment": "신호 판정까지만 수행. 주문 실행 기능 없음.",
+    "swing_horizon_days": 10,
+    "display_only": true,
+    "score_cutoff": null,
+    "_cutoff_comment": "null = 컷 없음. 50개 전 종목을 점수와 무관하게 모두 표시."
+  },
+
+  "universe": {
+    "target_size": 50,
+    "source": {
+      "market_cap_provider": "coingecko",
+      "market_cap_endpoint": "/coins/markets",
+      "market_cap_fetch_top_n": 150,
+      "exchange": "binance_futures",
+      "contract_type": "PERPETUAL",
+      "quote_asset": "USDT",
+      "status_filter": "TRADING"
+    },
+    "refresh_cron_utc": "10 0 * * *",
+    "min_listing_age_days": 30,
+    "exclude_symbols": [
+      "USDT", "USDC", "DAI", "FDUSD", "TUSD", "USDE", "PYUSD", "BUSD", "USDD",
+      "WBTC", "WETH", "WBETH", "STETH", "WSTETH", "CBETH", "RETH", "METH"
+    ],
+    "_exclude_comment": "스테이블코인 및 랩드/유동성스테이킹 파생. 기초자산과 중복되어 상대강도를 왜곡함.",
+    "btc_dual_role": true,
+    "_btc_comment": "BTC는 레짐 기준이면서 동시에 감시 대상 50개 중 하나."
+  },
+
+  "timeframes": {
+    "regime": "1d",
+    "primary": "4h",
+    "relative_strength": "1d",
+    "history_bars": {
+      "4h": 300,
+      "1d": 250
+    }
+  },
+
+  "regime": {
+    "_comment": "하드 게이트가 아닌 전역 승수. 차단 방식은 횡보장에 전 종목 0점을 만들어 전광판을 무의미하게 만듦.",
+    "reference_symbol": "BTCUSDT",
+    "timeframe": "1d",
+    "adx_period": 14,
+    "ema_fast": 50,
+    "ema_slow": 200,
+    "adx_factor": [
+      { "min": 25, "factor": 1.00 },
+      { "min": 20, "factor": 0.90 },
+      { "min": 0,  "factor": 0.70 }
+    ],
+    "direction_factor": {
+      "uptrend":   { "long": 1.00, "short": 0.75 },
+      "downtrend": { "long": 0.75, "short": 1.00 },
+      "neutral":   { "long": 0.85, "short": 0.85 }
+    },
+    "state_rules": {
+      "uptrend": "ema50 > ema200 AND close > ema200",
+      "downtrend": "ema50 < ema200 AND close < ema200",
+      "neutral": "otherwise"
+    }
+  },
+
+  "scoring": {
+    "total_points": 100,
+    "output_range": [0, 100],
+    "rounding": "round_half_up",
+    "compute_both_directions": true,
+    "display_value": "max(score_long, score_short)",
+    "tie_handling": "neutral",
+
+    "components": {
+
+      "trend_alignment": {
+        "points": 20,
+        "timeframe": "4h",
+        "enabled": true,
+        "params": {
+          "ema_fast": 20,
+          "ema_slow": 50,
+          "atr_period": 14,
+          "slope_lookback_bars": 6
+        },
+        "sub_weights": {
+          "close_vs_ema_slow": 0.40,
+          "ema_fast_vs_slow": 0.35,
+          "ema_slow_slope": 0.25
+        },
+        "normalizers": {
+          "close_vs_ema_slow_atr_mult": 1.5,
+          "ema_fast_vs_slow_atr_mult": 0.8,
+          "slope_atr_mult": 0.3
+        }
+      },
+
+      "entry_trigger": {
+        "points": 25,
+        "timeframe": "4h",
+        "enabled": true,
+        "mode": "pullback",
+        "_mode_options": ["pullback", "breakout"],
+        "_mode_comment": "반드시 하나만 선택. 눌림목형과 돌파형은 반대 국면을 노리므로 동시 사용 시 통계가 쌓이지 않음.",
+
+        "pullback": {
+          "rsi_period": 14,
+          "lookback_bars": 5,
+          "ideal_band_long": [38, 48],
+          "decay_band_long": [30, 56],
+          "ideal_band_short": [52, 62],
+          "decay_band_short": [44, 70],
+          "confirm_weight": 0.4,
+          "base_weight": 0.6,
+          "unconfirmed_factor": 0.3
+        },
+
+        "breakout": {
+          "donchian_period": 20,
+          "exclude_current_bar": true,
+          "_exclude_comment": "현재봉 포함 시 미래 데이터 참조가 되어 백테스트가 무의미해짐. 반드시 true.",
+          "breakout_atr_mult": 0.5,
+          "volume_sma_period": 20,
+          "volume_ratio_target": 1.5,
+          "sub_weights": {
+            "breakout_extent": 0.65,
+            "volume_expansion": 0.35
+          }
+        }
+      },
+
+      "momentum": {
+        "points": 15,
+        "timeframe": "4h",
+        "enabled": true,
+        "indicator": "macd_histogram",
+        "_indicator_comment": "RSI는 entry_trigger에서 이미 사용됨. 같은 모멘텀 계열 중복 금지.",
+        "params": {
+          "fast": 12,
+          "slow": 26,
+          "signal": 9,
+          "stdev_window": 50,
+          "stdev_mult": 0.6
+        }
+      },
+
+      "relative_strength": {
+        "points": 20,
+        "timeframe": "1d",
+        "enabled": true,
+        "_comment": "50종목에서는 순위 컷이 임의적이므로 백분위 사용.",
+        "method": "excess_return_percentile",
+        "lookback_days": 14,
+        "benchmark": "BTCUSDT",
+        "percentile_basis": "universe"
+      },
+
+      "funding_oi": {
+        "points": 10,
+        "enabled": true,
+        "sub_weights": {
+          "funding": 0.5,
+          "oi_price_agreement": 0.5
+        },
+        "funding": {
+          "interval_hours": 8,
+          "neutral_threshold": 0.0005,
+          "_threshold_comment": "8시간 기준 0.05%. 이 이상이면 롱 과밀로 판단하여 롱 항목 0점.",
+          "normalize_range": 0.001
+        },
+        "open_interest": {
+          "lookback_hours": 24,
+          "agreement_value": 1.0,
+          "disagreement_value": 0.3,
+          "_oi_comment": "가격 상승 + OI 증가 = 신규 매수 유입. 가격 상승 + OI 감소 = 숏 커버링으로 추세 지속력 약함."
+        }
+      },
+
+      "atr_regime": {
+        "points": 10,
+        "timeframe": "4h",
+        "enabled": true,
+        "atr_period": 14,
+        "percentile_window": 100,
+        "preference_by_mode": {
+          "pullback": "mid",
+          "breakout": "low"
+        },
+        "_preference_comment": "mid = 1 - |a-0.5|/0.5 (중간 변동성 선호). low = 1 - a (스퀴즈 선호).",
+        "direction_agnostic": true
+      }
+    },
+
+    "missing_data_policy": {
+      "component_neutral_value": 0.5,
+      "_policy_comment": "결측을 0점 처리하면 점수가 왜곡됨. 중립값으로 대체하고 응답에 degraded 플래그를 실음.",
+      "flag_field": "degraded"
+    }
+  },
+
+  "display": {
+    "board_title": "SIGNAL SCOREBOARD",
+    "theme": "dark_only",
+    "background": "#0B0E14",
+    "show_indicators": false,
+    "_show_indicators_comment": "RSI/MACD/가격/등락률 등 개별 지표 수치는 타일에 표시하지 않음. 점수만.",
+
+    "tile": {
+      "shows": ["symbol", "score", "direction_arrow"],
+      "score_font_scale": "dominant",
+      "direction_arrow": { "long": "▲", "short": "▼", "neutral": "" },
+      "_arrow_comment": "색맹 대응. 색상만으로 방향을 전달하지 않기 위한 것이므로 제거 금지."
+    },
+
+    "color_bands": [
+      {
+        "name": "ignore",
+        "label": "무시",
+        "min": 0, "max": 39,
+        "long_bg": "#1E222B",
+        "short_bg": "#1E222B",
+        "text": "#5B6270",
+        "hide_direction": true,
+        "glow": false
+      },
+      {
+        "name": "watch",
+        "label": "관심",
+        "min": 40, "max": 54,
+        "long_bg": "#14532D",
+        "short_bg": "#4C1D1D",
+        "text": "#E5E7EB",
+        "hide_direction": false,
+        "glow": false
+      },
+      {
+        "name": "ready",
+        "label": "준비",
+        "min": 55, "max": 69,
+        "long_bg": "#15803D",
+        "short_bg": "#B91C1C",
+        "text": "#FFFFFF",
+        "hide_direction": false,
+        "glow": false
+      },
+      {
+        "name": "valid",
+        "label": "유효",
+        "min": 70, "max": 84,
+        "long_bg": "#22C55E",
+        "short_bg": "#EF4444",
+        "text": "#0B0E14",
+        "hide_direction": false,
+        "glow": false
+      },
+      {
+        "name": "strong",
+        "label": "강함",
+        "min": 85, "max": 100,
+        "long_bg": "#86EFAC",
+        "short_bg": "#FCA5A5",
+        "text": "#0B0E14",
+        "hide_direction": false,
+        "glow": true,
+        "glow_css": "0 0 12px",
+        "pulse_seconds": 1.5
+      }
+    ],
+    "_band_comment": "연속 그라데이션이 아닌 5단계 이산 구간. 전광판은 한눈에 등급이 읽혀야 함.",
+
+    "grid": {
+      "desktop_columns": 10,
+      "tablet_columns": 5,
+      "mobile_columns": 3,
+      "breakpoints": { "desktop": 1280, "tablet": 768 }
+    },
+
+    "sort": {
+      "default": "score_desc",
+      "options": ["score_desc", "symbol_asc", "market_cap_asc"],
+      "persist_in_url": true
+    },
+
+    "filter": {
+      "default": "all",
+      "options": ["all", "long", "short"]
+    },
+
+    "header": {
+      "show_regime_state": true,
+      "show_adx": true,
+      "show_multipliers": true,
+      "show_last_updated": true,
+      "show_next_close_countdown": true,
+      "provisional_badge_text": "잠정",
+      "_provisional_comment": "진행 중인 4H봉으로 계산한 점수는 마감 시 변동 가능. 반드시 구분 표시."
+    },
+
+    "detail_panel": {
+      "enabled": true,
+      "trigger": "tile_click",
+      "shows": "component_breakdown",
+      "_comment": "6개 항목별 획득 점수만 표시. 지표 원값은 표시하지 않음."
+    }
+  },
+
+  "scheduler": {
+    "timezone": "UTC",
+    "candle_close_hours": [0, 4, 8, 12, 16, 20],
+    "recalc_delay_seconds": 30,
+    "provisional_interval_minutes": 5,
+    "universe_refresh_cron": "10 0 * * *",
+    "score_retention_days": 90
+  },
+
+  "data_source": {
+    "binance_futures_base": "https://fapi.binance.com",
+    "endpoints": {
+      "exchange_info": "/fapi/v1/exchangeInfo",
+      "klines": "/fapi/v1/klines",
+      "funding": "/fapi/v1/premiumIndex",
+      "open_interest_hist": "/futures/data/openInterestHist"
+    },
+    "coingecko_base": "https://api.coingecko.com/api/v3",
+    "requires_api_key": false,
+    "_no_key_comment": "공개 읽기 전용 엔드포인트만 사용. 거래 권한 API 키를 요구하는 코드를 넣지 말 것.",
+
+    "rate_limit": {
+      "max_concurrent_requests": 8,
+      "binance_weight_budget_per_min": 2400,
+      "retry": {
+        "max_attempts": 3,
+        "backoff_seconds": [1, 2, 4],
+        "retry_on_status": [429, 418, 500, 502, 503, 504]
+      }
+    },
+
+    "cache_ttl_seconds": {
+      "klines_4h": 240,
+      "klines_1d": 3600,
+      "funding": 300,
+      "open_interest": 3600,
+      "exchange_info": 86400,
+      "market_cap": 86400
+    }
+  },
+
+  "stack": {
+    "backend": ["python>=3.11", "fastapi", "sqlalchemy>=2.0", "alembic", "pydantic>=2", "apscheduler", "pandas", "numpy", "httpx"],
+    "frontend": ["next@15", "typescript", "tailwindcss", "shadcn/ui", "@tanstack/react-query"],
+    "database": "sqlite",
+    "forbidden_dependencies": ["ta-lib"],
+    "_forbidden_comment": "C 확장 의존성은 설치 실패가 잦음. 지표는 pandas/numpy로 직접 구현."
+  },
+
+  "constraints": {
+    "no_order_execution": true,
+    "no_external_notifications": true,
+    "no_chart_rendering": true,
+    "no_auth": true,
+    "no_additional_indicators": true,
+    "_additional_comment": "6개 항목은 상호 상관이 낮게 설계됨. 지표 추가는 확인이 아니라 중복을 늘림.",
+    "no_lookahead_bias": true,
+    "no_hardcoded_params": true
+  },
+
+  "disclaimer": "본 설정은 검증되지 않은 시작점이다. 실사용 전 최소 2~3년 데이터로 백테스트가 필요하며, 파라미터를 ±20% 흔들어도 결과가 유지되는 구간을 찾는 방식으로 검증해야 한다. 이 도구는 적합도 순위를 표시할 뿐 수익 확률을 표시하지 않는다. 투자 자문이 아니다."
+}

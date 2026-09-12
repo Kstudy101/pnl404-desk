@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SIGNAL SCOREBOARD</title>
+  <style>
+    html, body { margin: 0; background: #0B0E14; color: #e5e7eb; font: 13px/1.4 system-ui, Segoe UI, Malgun Gothic, sans-serif; }
+    main { max-width: 1800px; margin: 0 auto; padding: 16px 12px 32px; }
+    header { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; border-bottom: 1px solid rgba(255,255,255,.1); padding-bottom: 12px; }
+    h1 { margin: 0; font-size: 15px; letter-spacing: .2em; font-weight: 650; }
+    .meta, .chip { color: #9ca3af; font-size: 12px; }
+    .badge { display: inline-block; padding: 1px 7px; border-radius: 3px; font-size: 11px; font-weight: 700; }
+    .badge.prov { background: #422006; color: #fbbf24; border: 1px solid #92400e; }
+    .badge.warn { background: #3f2a00; color: #fcd34d; border: 1px solid #854d0e; }
+    .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 14px 0 0; }
+    .controls button {
+      appearance: none; border: 1px solid #2a3140; background: #161a22; color: #d1d5db;
+      padding: 5px 10px; border-radius: 6px; cursor: pointer; font: inherit;
+    }
+    .controls button[aria-pressed="true"] { background: #14532d; border-color: #166534; color: #86efac; }
+    .shell { display: flex; flex-direction: column; gap: 16px; padding-top: 16px; }
+    .grid { display: grid; gap: 6px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .tile {
+      aspect-ratio: 4 / 3; min-height: 64px; border: 0; border-radius: 6px; cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 6px 4px; font: inherit; color: inherit;
+    }
+    .tile:hover { transform: scale(1.03); }
+    .tile .sym { font-size: 11px; opacity: .8; }
+    .tile .score { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; }
+    .tile .score small { font-size: 11px; margin-left: 2px; }
+    .tile.glow { animation: pulse 1.5s ease-in-out infinite; }
+    @keyframes pulse { 50% { filter: brightness(1.12); } }
+    .legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; color: #9ca3af; font-size: 11px; }
+    .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+    aside { display: flex; flex-wrap: wrap; gap: 10px; }
+    .panel { flex: 1 1 240px; background: #161a22; border: 1px solid #262b36; border-radius: 8px; padding: 10px 12px; min-width: 0; }
+    .panel h2 { margin: 0 0 8px; font-size: 12px; color: #c9d1d9; }
+    .row { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; color: #9ca3af; }
+    .row b { color: #e5e7eb; font-variant-numeric: tabular-nums; }
+    .dist { display: flex; height: 10px; border-radius: 3px; overflow: hidden; border: 1px solid #3a4150; margin-bottom: 8px; }
+    .empty, .err { padding: 28px 8px; color: #9ca3af; }
+    dialog { border: 1px solid #3a4150; background: #161a22; color: #e5e7eb; border-radius: 10px; width: min(420px, 92vw); padding: 0; }
+    dialog::backdrop { background: rgba(0,0,0,.55); }
+    .dlg-h { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-bottom: 1px solid #262b36; }
+    .dlg-h button { appearance: none; border: 0; background: transparent; color: #9ca3af; cursor: pointer; font-size: 18px; }
+    .dlg-b { padding: 12px 14px 16px; }
+    table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+    th, td { text-align: right; padding: 4px 6px; border-bottom: 1px solid #1f2430; }
+    th:first-child, td:first-child { text-align: left; }
+    th { color: #8891a0; font-weight: 500; }
+    .up { color: #86efac; } .dn { color: #fca5a5; }
+    @media (min-width: 768px) { .grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+    @media (min-width: 1280px) {
+      .grid { grid-template-columns: repeat(10, minmax(0, 1fr)); }
+      .shell { flex-direction: row; align-items: flex-start; }
+      .main { flex: 1; min-width: 0; }
+      aside { flex: 0 0 300px; width: 300px; flex-direction: column; flex-wrap: nowrap; }
+      aside .panel { flex: none; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header id="hdr"><p class="meta">불러오는 중…</p></header>
+    <div id="body"></div>
+  </main>
+  <dialog id="dlg">
+    <div class="dlg-h"><strong id="dlg-t"></strong><button type="button" id="dlg-x" aria-label="닫기">×</button></div>
+    <div class="dlg-b" id="dlg-b"></div>
+  </dialog>
+  <script>
+    const REGIME = { uptrend: "상승추세", downtrend: "하락추세", neutral: "중립" };
+    const SORT_L = { score_desc: "점수순", symbol_asc: "심볼순", market_cap_asc: "시총순" };
+    const FILT_L = { all: "전체", long: "롱", short: "숏" };
+    const state = { sort: "score_desc", filter: "all", cfg: null, board: null };
+
+    const $ = (id) => document.getElementById(id);
+    const fmtTime = (iso) => {
+      if (!iso) return "—";
+      const d = new Date(iso);
+      return d.toISOString().slice(0, 16).replace("T", " ") + " UTC";
+    };
+    function bandOf(cfg, score, name) {
+      const bands = cfg.display.color_bands;
+      return bands.find((b) => b.name === name) || bands.find((b) => score >= b.min && score <= b.max) || bands[0];
+    }
+    function applyView(items, sort, filter) {
+      const list = filter === "all" ? items.slice() : items.filter((i) => i.direction === filter);
+      if (sort === "symbol_asc") list.sort((a, b) => a.display.localeCompare(b.display));
+      else if (sort === "market_cap_asc") list.sort((a, b) => (a.market_cap_rank ?? 999) - (b.market_cap_rank ?? 999));
+      else list.sort((a, b) => b.score - a.score || (a.market_cap_rank ?? 999) - (b.market_cap_rank ?? 999));
+      return list;
+    }
+    function render() {
+      const cfg = state.cfg, board = state.board;
+      if (!board) return;
+      const r = board.regime || {};
+      $("hdr").innerHTML =
+        "<h1>" + (cfg.display.board_title || "SIGNAL SCOREBOARD") + "</h1>" +
+        (board.candle_closed ? "" : '<span class="badge prov">잠정</span>') +
+        (board.degraded ? '<span class="badge warn">결측 보정</span>' : "") +
+        '<span class="meta">BTC 레짐 ' + (REGIME[r.state] || r.state || "—") +
+        " · ADX " + (r.adx ?? "—") +
+        " · 롱×" + (r.multiplier_long ?? "—") +
+        " 숏×" + (r.multiplier_short ?? "—") +
+        " · " + fmtTime(board.generated_at) +
+        " · " + board.universe_size + "종목</span>";
+
+      const shown = applyView(board.items || [], state.sort, state.filter);
+      const sorts = cfg.display.sort.options.map((k) =>
+        '<button type="button" data-sort="' + k + '" aria-pressed="' + (state.sort === k) + '">' + (SORT_L[k] || k) + "</button>"
+      ).join("");
+      const filts = cfg.display.filter.options.map((k) =>
+        '<button type="button" data-filter="' + k + '" aria-pressed="' + (state.filter === k) + '">' + (FILT_L[k] || k) + "</button>"
+      ).join("");
+
+      const tiles = shown.map((item) => {
+        const band = bandOf(cfg, item.score, item.band);
+        const bg = item.direction === "short" ? band.short_bg : band.long_bg;
+        const arrow = band.hide_direction ? "" : (cfg.display.tile.direction_arrow[item.direction] || "");
+        const glow = band.glow ? " glow" : "";
+        return '<button type="button" class="tile' + glow + '" data-sym="' + item.symbol +
+          '" style="background:' + bg + ";color:" + band.text + (band.glow ? ";box-shadow:0 0 12px " + bg : "") +
+          '"><span class="sym">' + item.display + '</span><span class="score">' + item.score +
+          (arrow ? "<small>" + arrow + "</small>" : "") + "</span></button>";
+      }).join("");
+
+      const legend = cfg.display.color_bands.map((b) =>
+        '<span><i style="background:' + b.long_bg + '"></i>' + b.label + " " + b.min + "–" + b.max + "</span>"
+      ).join("");
+
+      const bands = cfg.display.color_bands.map((b) => {
+        const n = (board.items || []).filter((i) => i.band === b.name).length;
+        return { b, n, share: board.items.length ? n / board.items.length : 0 };
+      });
+      const dist = bands.map((x) =>
+        '<i style="width:' + (x.share * 100) + "%;background:" + x.b.long_bg + '" title="' + x.b.label + " " + x.n + '"></i>'
+      ).join("");
+      const distRows = bands.map((x) =>
+        '<div class="row"><span>' + x.b.label + "</span><b>" + x.n + " · " + Math.round(x.share * 100) + "%</b></div>"
+      ).join("");
+
+      const longs = board.items.filter((i) => i.direction === "long").length;
+      const shorts = board.items.filter((i) => i.direction === "short").length;
+      const neus = board.items.length - longs - shorts;
+
+      const movers = board.items
+        .filter((i) => typeof i.score_delta === "number")
+        .slice()
+        .sort((a, b) => Math.abs(b.score_delta) - Math.abs(a.score_delta));
+      const up = movers.filter((i) => i.score_delta > 0).slice(0, 5);
+      const down = movers.filter((i) => i.score_delta < 0).slice(0, 5);
+      const moverRows = (rows) => rows.length
+        ? rows.map((i) => '<div class="row"><span>' + i.display + '</span><b class="' + (i.score_delta > 0 ? "up" : "dn") + '">' +
+          (i.score_delta > 0 ? "+" : "") + i.score_delta + "</b></div>").join("")
+        : '<div class="row"><span>변동 없음</span></div>';
+
+      $("body").innerHTML =
+        '<div class="controls">' + sorts + "<span class='meta'>·</span>" + filts +
+        '<span class="meta">' + shown.length + " / " + board.items.length + "</span></div>" +
+        '<div class="shell"><div class="main"><div class="grid">' + (tiles || "") + "</div>" +
+        (shown.length ? "" : '<p class="empty">조건에 맞는 종목이 없습니다.</p>') +
+        '<div class="legend">' + legend + "</div></div>" +
+        '<aside>' +
+          '<section class="panel"><h2>레짐</h2>' +
+            '<div class="row"><span>상태</span><b>' + (REGIME[r.state] || r.state || "—") + "</b></div>" +
+            '<div class="row"><span>ADX</span><b>' + (r.adx ?? "—") + "</b></div>" +
+            '<div class="row"><span>롱 승수</span><b>×' + (r.multiplier_long ?? "—") + "</b></div>" +
+            '<div class="row"><span>숏 승수</span><b>×' + (r.multiplier_short ?? "—") + "</b></div></section>" +
+          '<section class="panel"><h2>밴드 분포</h2><div class="dist">' + dist + "</div>" + distRows + "</section>" +
+          '<section class="panel"><h2>방향 구성</h2>' +
+            '<div class="row"><span>롱</span><b class="up">' + longs + "</b></div>" +
+            '<div class="row"><span>숏</span><b class="dn">' + shorts + "</b></div>" +
+            '<div class="row"><span>중립</span><b>' + neus + "</b></div></section>" +
+          '<section class="panel"><h2>상위 변동</h2>' +
+            "<div class='meta' style='margin-bottom:6px'>직전 스냅샷 대비</div>" +
+            moverRows(up) + moverRows(down) + "</section>" +
+          '<section class="panel"><h2>데이터 상태</h2>' +
+            '<div class="row"><span>봉</span><b>' + (board.candle_closed ? "완성" : "진행 중") + "</b></div>" +
+            '<div class="row"><span>유니버스</span><b>' + board.universe_size + "</b></div>" +
+            ((board.notes || []).map((n) => '<div class="row"><span>' + n + "</span></div>").join("") || "") +
+          "</section></aside></div>";
+
+      $("body").querySelectorAll("[data-sort]").forEach((btn) => {
+        btn.onclick = () => { state.sort = btn.dataset.sort; render(); };
+      });
+      $("body").querySelectorAll("[data-filter]").forEach((btn) => {
+        btn.onclick = () => { state.filter = btn.dataset.filter; render(); };
+      });
+      $("body").querySelectorAll(".tile").forEach((btn) => {
+        btn.onclick = () => openDetail(btn.dataset.sym);
+      });
+    }
+
+    function openDetail(symbol) {
+      const board = state.board;
+      const item = (board.items || []).find((i) => i.symbol === symbol);
+      const detail = (board.details && board.details[symbol]) || null;
+      $("dlg-t").textContent = (item?.display || symbol) + " 배점";
+      if (!detail) {
+        $("dlg-b").innerHTML = "<p class='meta'>이 스냅샷에는 항목별 배점이 없습니다.</p>";
+      } else {
+        const rows = (detail.components || []).map((c) =>
+          "<tr><td>" + c.label + "</td><td>" + c.points_long.toFixed(1) + "</td><td>" +
+          c.points_short.toFixed(1) + "</td><td>" + c.points_max + "</td></tr>"
+        ).join("");
+        $("dlg-b").innerHTML =
+          '<div class="row"><span>표시</span><b>' + (item?.score ?? "—") + " " + (item?.direction || "") + "</b></div>" +
+          '<div class="row"><span>롱 / 숏</span><b>' + detail.score_long + " / " + detail.score_short + "</b></div>" +
+          '<table><thead><tr><th>항목</th><th>롱</th><th>숏</th><th>배점</th></tr></thead><tbody>' +
+          rows + "</tbody></table>";
+      }
+      $("dlg").showModal();
+    }
+
+    $("dlg-x").onclick = () => $("dlg").close();
+    $("dlg").addEventListener("click", (e) => { if (e.target === $("dlg")) $("dlg").close(); });
+
+    Promise.all([
+      fetch("./signal_config.json", { cache: "no-store" }).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+      fetch("./data.json", { cache: "no-store" }).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+    ]).then(([cfg, board]) => {
+      state.cfg = cfg;
+      state.board = board;
+      render();
+    }).catch((err) => {
+      $("hdr").innerHTML = "<h1>SIGNAL SCOREBOARD</h1>";
+      $("body").innerHTML = '<p class="err">전광판 스냅샷을 불러오지 못했습니다. (' + err.message + ")</p>";
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "name": "pnl404-desk",
+  "private": true,
+  "type": "module",
+  "description": "PNL404 탭 셸 — 스윙전광판 · 피보나치 · SOP",
+  "scripts": {
+    "publish": "node scripts/publish.mjs",
+    "deploy": "node scripts/publish.mjs --deploy"
+  }
+}

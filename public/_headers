@@ -1,0 +1,12 @@
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: same-origin
+
+/modules/board/data.json
+  Cache-Control: public, max-age=60
+
+/modules/fib/index.html
+  Cache-Control: public, max-age=60
+
+/modules/sop/index.html
+  Cache-Control: public, max-age=60
