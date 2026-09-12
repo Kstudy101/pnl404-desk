@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PNL404</title>
-  <meta name="description" content="스윙전광판 · 피보나치 기준 구간 · 1시간봉 SOP">
+  <meta name="description" content="미국·한국·일본 주식과 암호화폐 전광판 · 관심종목 · 피보나치 · SOP">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230B0E14'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-size='11' font-family='system-ui' fill='%2386EFAC'%3E404%3C/text%3E%3C/svg%3E">
   <style>
     :root {
@@ -49,7 +49,7 @@
       border-color: #166534;
     }
     .note { color: var(--muted); font-size: 11px; white-space: nowrap; }
-    iframe { flex: 1; width: 100%; border: 0; background: var(--bg); }
+    iframe { flex: 1; min-height: 0; width: 100%; border: 0; background: var(--bg); }
     @media (max-width: 720px) {
       .note { display: none; }
       header { gap: 10px; padding: 0 8px; }
@@ -62,17 +62,17 @@
     <header>
       <a class="brand" href="/">PNL<span>404</span></a>
       <nav role="tablist" aria-label="모듈">
-        <button type="button" role="tab" id="tab-board" aria-controls="frame" aria-selected="true" data-tab="board">스윙전광판</button>
+        <button type="button" role="tab" id="tab-board" aria-controls="frame" aria-selected="true" data-tab="board">전광판</button>
         <button type="button" role="tab" id="tab-fib" aria-controls="frame" aria-selected="false" data-tab="fib">피보나치</button>
         <button type="button" role="tab" id="tab-sop" aria-controls="frame" aria-selected="false" data-tab="sop">SOP</button>
       </nav>
-      <span class="note" id="note">바이낸스 공개 데이터 · 주문 실행 없음</span>
+      <span class="note" id="note">미국 · 한국 · 일본 · 암호화폐</span>
     </header>
     <iframe id="frame" title="모듈" src="/modules/board/index.html"></iframe>
   </div>
   <script>
     const TABS = {
-      board: { src: "/modules/board/index.html", title: "스윙전광판 — PNL404", note: "4H 스윙 적합도 점수 · 시총 상위 선물" },
+      board: { src: "/modules/board/index.html", title: "전광판 — PNL404", note: "미국 · 한국 · 일본 · 암호화폐 | 15분 갱신 확인" },
       fib: { src: "/modules/fib/index.html", title: "피보나치 — PNL404", note: "BTCUSDT 1~90일 기준 구간" },
       sop: { src: "/modules/sop/index.html", title: "SOP — PNL404", note: "BTC/ETH/SOL/XRP 1H 미해소 레벨" },
     };
@@ -88,7 +88,11 @@
     function apply(id, push) {
       const spec = TABS[id];
       if (!spec) return;
-      frame.src = spec.src;
+      if (push && current() === id) return;
+      // A module change has one shell history entry. Replacing the child
+      // navigation prevents Back from changing only the iframe under a stale tab.
+      frame.contentWindow.location.replace(new URL(spec.src, location.href).href);
+      frame.title = spec.title;
       document.title = spec.title;
       note.textContent = spec.note;
       for (const btn of buttons) {

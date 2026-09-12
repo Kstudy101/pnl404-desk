@@ -7,7 +7,12 @@ import json
 import sys
 from pathlib import Path
 
-BACKEND = Path(__file__).resolve().parents[2] / "스윙전광판" / "backend"
+ROOT = Path(__file__).resolve().parents[1]
+SOURCE_PROJECTS = json.loads((ROOT / "source-projects.json").read_text(encoding="utf-8"))
+BOARD = SOURCE_PROJECTS.get("board") if isinstance(SOURCE_PROJECTS, dict) else None
+if not isinstance(BOARD, str) or not BOARD.strip():
+    raise SystemExit("source-projects.json: board must be a nonempty path")
+BACKEND = (ROOT / BOARD / "backend").resolve()
 if not BACKEND.is_dir():
     raise SystemExit(f"backend not found: {BACKEND}")
 

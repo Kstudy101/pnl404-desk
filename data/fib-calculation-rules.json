@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "module": "fib",
+  "displayCalculationRules": false,
+  "implementation": "public/modules/fib/zone-visualization.mjs",
+  "source": {
+    "levels": "D.distinct[].rows",
+    "currentPrice": "D.price"
+  },
+  "bands": {
+    "lower": { "label": "하단 밴드", "low": "#1", "high": "#2" },
+    "upper": { "label": "상단 밴드", "low": "#7", "high": "#8" }
+  },
+  "metrics": {
+    "rise": {
+      "label": "밴드 간 상승폭",
+      "formula": "(price(#7) - price(#2)) / price(#2) * 100",
+      "unit": "%"
+    },
+    "riseAmount": {
+      "formula": "price(#7) - price(#2)",
+      "unit": "USDT"
+    },
+    "gap": {
+      "label": "현재가 대비 괴리율",
+      "formula": "(levelPrice - currentPrice) / currentPrice * 100",
+      "unit": "%",
+      "positive": "레벨이 현재가 위",
+      "negative": "레벨이 현재가 아래",
+      "upperBandTarget": "#7"
+    },
+    "progress": {
+      "label": "구간 내 현재가 위치",
+      "formula": "(currentPrice - price(#2)) / (price(#7) - price(#2)) * 100",
+      "unit": "%",
+      "zeroLevel": "#2",
+      "hundredLevel": "#7",
+      "clamp": false
+    }
+  },
+  "scope": "기본 하단·상단 밴드 가격을 비교하며 확장 3층 레벨은 기존 매트릭스에서 관리한다."
+}

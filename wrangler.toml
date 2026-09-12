@@ -1,8 +1,17 @@
 name = "pnl404-desk"
 compatibility_date = "2026-09-12"
 workers_dev = true
+main = "worker/index.mjs"
+
+[vars]
+MARKET_DATA_MODE = "python"
+
+[triggers]
+crons = ["*/15 * * * *"]
 
 [assets]
 directory = "./public"
+binding = "ASSETS"
+run_worker_first = ["/api/*"]
 html_handling = "auto-trailing-slash"
 not_found_handling = "404-page"

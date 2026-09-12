@@ -3,3 +3,7 @@ Thumbs.db
 *.log
 .wrangler/
 .node_modules/
+_workspace/
+.bkit/
+.venv-market/
+__pycache__/

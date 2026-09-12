@@ -5,6 +5,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
+concurrency:
+  group: pnl404-production
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -14,6 +18,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: cloudflare/wrangler-action@v3
         with:
+          wranglerVersion: '4.131.1'
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: d1058156eb886528d9b67d52a6de410a
           command: deploy

@@ -4,15 +4,15 @@
  *   node scripts/publish.mjs
  *   node scripts/publish.mjs --deploy
  */
-import { cpSync, existsSync, mkdirSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { resolveSources } from "./source-paths.mjs";
+import { enhanceFibHtml } from "./enhance-fib.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const DESKTOP = resolve(ROOT, "..");
-const PIVOT = resolve(DESKTOP, "피봇스윙매매");
-const BOARD = resolve(DESKTOP, "스윙전광판");
+const sources = resolveSources(ROOT);
 const deploy = process.argv.includes("--deploy");
 
 function copy(from, to) {
@@ -27,24 +27,25 @@ function run(cmd, args, cwd) {
   if (r.status !== 0) throw new Error(`${cmd} ${args.join(" ")} 종료 ${r.status}`);
 }
 
+const fibHtml = enhanceFibHtml(readFileSync(sources.fibHtml, "utf8"));
+const fibOutput = resolve(ROOT, "public/modules/fib/index.html");
+mkdirSync(dirname(fibOutput), { recursive: true });
+writeFileSync(fibOutput, fibHtml);
+console.log(`copy ${sources.fibHtml} -> ${fibOutput} (상승 구간 시각화 포함)`);
 copy(
-  resolve(PIVOT, "out/fib/fibdash_BTCUSDT.html"),
-  resolve(ROOT, "public/modules/fib/index.html"),
-);
-copy(
-  resolve(PIVOT, "out/sop/sop_all.html"),
+  sources.sopHtml,
   resolve(ROOT, "public/modules/sop/index.html"),
 );
 copy(
-  resolve(BOARD, "signal_config.json"),
+  sources.signalConfig,
   resolve(ROOT, "public/modules/board/signal_config.json"),
 );
 
-const py = resolve(BOARD, "backend/.venv/Scripts/python.exe");
+const py = sources.python;
 const outJson = resolve(ROOT, "public/modules/board/data.json");
 if (existsSync(py)) {
   console.log("snapshot board…");
-  run(py, [resolve(ROOT, "scripts/snapshot-board.py"), outJson], resolve(BOARD, "backend"));
+  run(py, [resolve(ROOT, "scripts/snapshot-board.py"), outJson], sources.backend);
 } else if (!existsSync(outJson)) {
   console.warn("board snapshot skipped: venv 없음, 기존 data.json 도 없음");
 } else {

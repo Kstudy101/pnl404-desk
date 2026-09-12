@@ -1,0 +1,82 @@
+#fib-rise{padding:20px 22px;gap:16px;border-color:#354254;background:linear-gradient(115deg,#191c26,#141d29);font-size:12px}
+#fib-rise *{box-sizing:border-box}
+#fib-rise p{margin:0}
+#fib-rise .fr-heading{display:flex;justify-content:space-between;gap:16px;align-items:center}
+#fib-rise .fr-eyebrow{font-size:10px;letter-spacing:.16em;color:#98a9bf;margin-bottom:5px}
+#fib-rise #fib-rise-title{font-size:22px;color:#f2f5fa;justify-content:flex-start;gap:12px;margin:0 0 4px;font-weight:650}
+#fib-rise #fib-rise-title span{color:#81b7ff}
+#fib-rise .fr-subtitle{font-size:12px;color:#a2aec0}
+#fib-rise .fr-picker{display:flex;align-items:center;gap:10px;white-space:nowrap;color:#a2aec0}
+#fib-rise select{background:#101722;color:#e7edf6;border:1px solid #42536b;border-radius:6px;padding:9px 32px 9px 12px;font:inherit;min-width:130px;cursor:pointer}
+#fib-rise :is(select,button,summary):focus-visible{outline:2px solid #92bdff;outline-offset:3px}
+#fib-rise .fr-metrics{display:grid;grid-template-columns:1fr 1fr 1.15fr;margin:0 0 19px;border-top:1px solid #2c3544;border-bottom:1px solid #2c3544}
+#fib-rise .fr-metric{padding:15px 18px;border-right:1px solid #2c3544;display:flex;flex-direction:column;gap:4px;font-variant-numeric:tabular-nums}
+#fib-rise .fr-metric:first-child{padding-left:0}
+#fib-rise .fr-metric:last-child{border-right:0}
+#fib-rise .fr-metric>span{color:#aab6c6;font-size:12px}
+#fib-rise .fr-metric>strong{font-size:28px;line-height:1.3;font-weight:600;letter-spacing:-.03em}
+#fib-rise .fr-metric small{font-size:11px;color:#a2aec0;font-weight:400;letter-spacing:0}
+#fib-rise .fr-positive{color:#84baff!important}
+#fib-rise .fr-negative{color:#ff999b!important}
+#fib-rise .fr-route-header{display:flex;justify-content:space-between;font-size:12px;gap:20px}
+#fib-rise .fr-route-header b{font-size:11px;opacity:.85;margin-left:4px}
+#fib-rise .fr-red-text{color:#ff9b9e}
+#fib-rise .fr-blue-text{color:#91c4ff}
+#fib-rise .fr-route{position:relative;height:112px;isolation:isolate;margin:0 2px;font-variant-numeric:tabular-nums}
+#fib-rise .fr-price-line{position:absolute;height:1px;background:#405069;left:0;right:0;top:66px}
+#fib-rise .fr-zone{position:absolute;top:48px;height:36px;border:1px solid;border-radius:5px}
+#fib-rise .fr-red-zone{background:#d9516250;border-color:#ef7b86}
+#fib-rise .fr-blue-zone{background:#3e92e45c;border-color:#76b6ff}
+#fib-rise .fr-travel{position:absolute;top:58px;height:16px;background:linear-gradient(90deg,#e7778545,#6baeff75);border-top:1px solid #8ea9cc;border-bottom:1px solid #8ea9cc}
+#fib-rise .fr-travel>span{position:absolute;right:-1px;top:-12px;line-height:36px;font-size:27px;color:#b3cfff}
+#fib-rise .fr-now{position:absolute;top:11px;height:82px;border-left:2px solid #f3f6fb;z-index:2}
+#fib-rise .fr-now>span{position:absolute;top:0;left:0;transform:translateX(-50%);background:#edf3fb;color:#141b27;border-radius:4px;padding:4px 7px;white-space:nowrap;font-weight:650;font-size:11px}
+#fib-rise .fr-now>i{display:block;position:absolute;left:-5px;top:51px;width:8px;height:8px;background:#fff;transform:rotate(45deg);box-shadow:0 0 0 2px #192332}
+#fib-rise .fr-axis-label{position:absolute;top:96px;transform:translateX(-50%);font-size:10px;color:#a2aec0}
+#fib-rise .fr-levels{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+#fib-rise .fr-level{display:flex;flex-direction:column;gap:5px;padding:10px 12px;background:#111824;border-radius:5px;border-top:2px solid;font-variant-numeric:tabular-nums}
+#fib-rise .fr-level>span{font-size:11px;color:#aebacc}
+#fib-rise .fr-level>b{font-size:16px;font-weight:550;color:#edf3fb}
+#fib-rise .fr-level>small{font-size:10px}
+#fib-rise .fr-red-level{border-color:#e97d86}
+#fib-rise .fr-blue-level{border-color:#78b8ff}
+#fib-rise details{margin:0}
+#fib-rise summary{display:list-item;margin:0;font-size:12px;color:#b8c7dc;line-height:1.8;cursor:pointer}
+#fib-rise .fr-compare{border-top:1px solid #2c3544;padding-top:11px}
+#fib-rise .fr-hint{color:#9aabc1;font-size:11px;margin:8px 0}
+#fib-rise .fr-comparison-scroll{overflow:auto;max-height:380px}
+#fib-rise .fr-comparison{min-width:560px}
+#fib-rise .fr-comparison th,#fib-rise .fr-comparison td{padding:5px 9px;border-color:#2a3444}
+#fib-rise .fr-comparison thead th{position:sticky;top:0;z-index:3;background:#182230;color:#a9bbd3;font-size:10px}
+#fib-rise .fr-comparison td:nth-child(2){width:100%;min-width:180px}
+#fib-rise .fr-number{text-align:right;font-variant-numeric:tabular-nums;font-size:12px}
+#fib-rise .fr-ref-button{border:1px solid transparent;border-radius:4px;background:transparent;color:#acbdd4;padding:5px 7px;cursor:pointer;font:inherit}
+#fib-rise .fr-ref-button[aria-pressed=true]{color:#e1eeff;border-color:#597fae;background:#263b54}
+#fib-rise .fr-ref-button:hover{color:white;background:#263b54}
+#fib-rise .fr-mini{height:16px;position:relative;background:#0c1521;border-radius:3px}
+#fib-rise .fr-mini>span{position:absolute;display:block;top:3px;height:10px;border-radius:2px}
+#fib-rise .fr-mini .fr-mini-route{top:7px;height:2px;background:#6e8eaf}
+#fib-rise .fr-mini-red{background:#ee7b89}
+#fib-rise .fr-mini-blue{background:#77b7ff}
+#fib-rise .fr-mini .fr-mini-now{top:0;bottom:0;height:100%;width:2px;background:#fff}
+#fib-rise .fr-mini-prices{display:flex;justify-content:space-between;font-size:9px;color:#a4b6ce;margin-top:2px;font-variant-numeric:tabular-nums}
+@media(max-width:720px){
+  #wrap{grid-template-columns:minmax(0,1fr)}
+  #dist{display:block;overflow:auto}
+  .near2{grid-template-columns:minmax(0,1fr);gap:12px}
+  #fib-rise{padding:16px 12px;gap:12px}
+  #fib-rise .fr-heading{align-items:flex-start;flex-wrap:wrap;gap:12px}
+  #fib-rise #fib-rise-title{font-size:20px}
+  #fib-rise .fr-picker{width:100%;justify-content:space-between}
+  #fib-rise select{min-width:150px}
+  #fib-rise .fr-subtitle{font-size:11px}
+  #fib-rise .fr-metrics{grid-template-columns:1fr 1fr}
+  #fib-rise .fr-metric{padding:12px 0}
+  #fib-rise .fr-metric:nth-child(2){padding-left:12px;border-right:0}
+  #fib-rise .fr-current{grid-column:1/-1;border-top:1px solid #2c3544;padding:10px 0}
+  #fib-rise .fr-metric>strong{font-size:25px}
+  #fib-rise .fr-current>strong{font-size:22px}
+  #fib-rise .fr-levels{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #fib-rise .fr-now>span{font-size:10px;padding:4px}
+  #fib-rise .fr-route{margin:0 15px}
+}

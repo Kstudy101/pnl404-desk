@@ -1,0 +1,237 @@
+{
+  "description": "수동/독립 에이전트 선택 기준 평가. 자동 디스커버리의 실제 실행 결과와 구분한다.",
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "모바일에서 PNL404 탭 간격을 줄여줘",
+      "expected": [
+        "pnl404-orchestrator",
+        "pnl404-ui"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "피보나치 탭 URL로 직접 들어가면 다른 탭이 떠. 고쳐줘",
+      "expected": [
+        "pnl404-orchestrator",
+        "pnl404-ui"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "전광판 심볼순 정렬 화면을 수정해줘",
+      "expected": [
+        "pnl404-orchestrator",
+        "pnl404-ui"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "전광판 상세창 닫기 버튼 키보드 조작을 보완해줘",
+      "expected": [
+        "pnl404-orchestrator",
+        "pnl404-ui"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "아까 전광판 필터 수정한 것에서 빈 결과 안내만 바꿔줘",
+      "expected": [
+        "pnl404-orchestrator",
+        "pnl404-ui"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "PNL404 탭을 눌렀다가 뒤로가면 제목이 안 맞아. 수정해줘",
+      "expected": [
+        "pnl404-orchestrator",
+        "pnl404-ui"
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "SOP 표시 색상을 이번 산출물에만 바꿔줘",
+      "expected": [
+        "pnl404-orchestrator",
+        "pnl404-ui"
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "전광판 잠정 배지 모바일 줄바꿈을 수정해줘",
+      "expected": [
+        "pnl404-orchestrator",
+        "pnl404-ui"
+      ]
+    },
+    {
+      "id": 9,
+      "prompt": "PNL404를 최신 데이터로 갱신해줘",
+      "expected": [
+        "pnl404-orchestrator",
+        "pnl404-publish"
+      ]
+    },
+    {
+      "id": 10,
+      "prompt": "publish 실행이 없음 오류로 끝나. 원본 경로부터 고쳐줘",
+      "expected": [
+        "pnl404-orchestrator",
+        "pnl404-publish"
+      ]
+    },
+    {
+      "id": 11,
+      "prompt": "피보나치 원본 HTML만 데스크에 다시 복사해줘",
+      "expected": [
+        "pnl404-orchestrator",
+        "pnl404-publish"
+      ]
+    },
+    {
+      "id": 12,
+      "prompt": "SOP 산출물만 다시 게시해줘. 다른 건 그대로",
+      "expected": [
+        "pnl404-orchestrator",
+        "pnl404-publish"
+      ]
+    },
+    {
+      "id": 13,
+      "prompt": "준비된 public 파일 그대로 Cloudflare에 배포해줘",
+      "expected": [
+        "pnl404-orchestrator",
+        "pnl404-publish"
+      ]
+    },
+    {
+      "id": 14,
+      "prompt": "전광판 Python 환경이 없어서 갱신이 안 돼. 해결해줘",
+      "expected": [
+        "pnl404-orchestrator",
+        "pnl404-publish"
+      ]
+    },
+    {
+      "id": 15,
+      "prompt": "이전 갱신 실패 지점부터 다시 실행해줘",
+      "expected": [
+        "pnl404-orchestrator",
+        "pnl404-publish"
+      ]
+    },
+    {
+      "id": 16,
+      "prompt": "데이터 갱신하고 pnl404-desk Worker로 배포해줘",
+      "expected": [
+        "pnl404-orchestrator",
+        "pnl404-publish"
+      ]
+    },
+    {
+      "id": 17,
+      "prompt": "지금 PNL404 파일만 검사해줘. 데이터 갱신은 하지 마",
+      "expected": [
+        "pnl404-orchestrator",
+        "pnl404-verify"
+      ]
+    },
+    {
+      "id": 18,
+      "prompt": "PNL404 배포 전 JSON과 화면 연결을 점검해줘",
+      "expected": [
+        "pnl404-orchestrator",
+        "pnl404-verify"
+      ]
+    },
+    {
+      "id": 19,
+      "prompt": "전광판 상세 배점 타입이 UI와 맞는지 확인해줘",
+      "expected": [
+        "pnl404-orchestrator",
+        "pnl404-verify"
+      ]
+    },
+    {
+      "id": 20,
+      "prompt": "하네스 역할 파일과 스킬 링크가 맞는지 감사해줘",
+      "expected": [
+        "pnl404-orchestrator",
+        "pnl404-verify"
+      ]
+    },
+    {
+      "id": 21,
+      "prompt": "아까 결과에서 SOP만 다시 검증해줘",
+      "expected": [
+        "pnl404-orchestrator",
+        "pnl404-verify"
+      ]
+    },
+    {
+      "id": 22,
+      "prompt": "기존 data.json에서 details가 없어도 화면이 작동하는지 확인해줘",
+      "expected": [
+        "pnl404-orchestrator",
+        "pnl404-verify"
+      ]
+    },
+    {
+      "id": 23,
+      "prompt": "전광판 빈 목록과 결측 표시를 테스트해줘",
+      "expected": [
+        "pnl404-orchestrator",
+        "pnl404-verify"
+      ]
+    },
+    {
+      "id": 24,
+      "prompt": "수정된 탭 링크가 존재하는 파일로 이어지는지 검사해줘",
+      "expected": [
+        "pnl404-orchestrator",
+        "pnl404-verify"
+      ]
+    },
+    {
+      "id": 25,
+      "prompt": "PNL404 화면의 잠정이라는 말이 무슨 뜻이야? 코드 변경은 필요 없어",
+      "expected": []
+    },
+    {
+      "id": 26,
+      "prompt": "README에 있는 로컬 배포 명령이 무슨 일을 하는지 설명만 해줘",
+      "expected": []
+    },
+    {
+      "id": 27,
+      "prompt": "다른 프로젝트의 Cloudflare 배포 오류를 조사해줘",
+      "expected": []
+    },
+    {
+      "id": 28,
+      "prompt": "원본 피봇스윙매매 전략의 기대수익을 분석해줘. 데스크 작업은 아냐",
+      "expected": []
+    },
+    {
+      "id": 29,
+      "prompt": "이 스크린샷에 보이는 SOP 구간의 개념만 설명해줘",
+      "expected": []
+    },
+    {
+      "id": 30,
+      "prompt": "새 Google Sheets 전광판을 만들어줘",
+      "expected": []
+    },
+    {
+      "id": 31,
+      "prompt": "별도 Supabase 앱의 전광판 DB 마이그레이션을 작성해줘",
+      "expected": []
+    },
+    {
+      "id": 32,
+      "prompt": "스윙전광판 원본 서버의 로그인 기능을 설계해줘. 데스크는 그대로",
+      "expected": []
+    }
+  ]
+}

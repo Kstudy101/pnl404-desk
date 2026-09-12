@@ -1,0 +1,83 @@
+name: Refresh swing market data
+
+on:
+  schedule:
+    - cron: '7,22,37,52 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pnl404-production
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 13
+    steps:
+      - name: Check deployment credentials before collecting data
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "::error::Set the CLOUDFLARE_API_TOKEN Actions secret before enabling scheduled publishing."
+            exit 1
+          fi
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements-market.txt
+      - run: python -m pip install -r requirements-market.txt
+      - name: Restore previous successful market data
+        id: history
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            public/modules/board/markets.json
+            public/modules/board/history
+          key: markets-v2-${{ hashFiles('scripts/market-*.py', 'worker/*.mjs', 'requirements-market.txt', 'public/modules/board/markets.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            markets-v2-${{ hashFiles('scripts/market-*.py', 'worker/*.mjs', 'requirements-market.txt', 'public/modules/board/markets.json') }}-
+      - name: Collect prices, daily history and momentum
+        shell: bash
+        run: |
+          set +e
+          npm run refresh:markets -- --crypto-history-budget 20 --crypto-min-interval 16
+          status=$?
+          set -e
+          if [ "$status" -eq 2 ]; then
+            echo "::warning::Partial collection; retain valid history and retry deferred instruments next run."
+          elif [ "$status" -ne 0 ]; then
+            exit "$status"
+          fi
+      - name: Validate generated data and application contracts
+        run: |
+          npm run check
+          npm run check:markets
+          npm test
+      - name: Preserve the last validated snapshot
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            public/modules/board/markets.json
+            public/modules/board/history
+          key: ${{ steps.history.outputs.cache-primary-key }}
+      - name: Prevent publishing code superseded during collection
+        run: |
+          git fetch --no-tags origin main
+          test "$(git rev-parse HEAD)" = "$(git rev-parse FETCH_HEAD)"
+      - name: Publish prepared market assets
+        uses: cloudflare/wrangler-action@v3
+        with:
+          wranglerVersion: '4.131.1'
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: d1058156eb886528d9b67d52a6de410a
+          command: deploy
