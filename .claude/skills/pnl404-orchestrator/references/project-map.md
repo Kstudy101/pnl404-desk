@@ -31,6 +31,8 @@
 
 피보나치 표시 확장은 `public/modules/fib/zone-visualization.mjs`와 `.css`에서 관리한다. 원본 매트릭스의 `D.distinct[].rows`에서 #1/#2/#7/#8 가격을 사용한다. #2→#7 상승폭의 분모는 #2 가격, 현재가 괴리율의 분모는 D.price다. 기본 하단·상단 밴드를 표시하며 확장층 상단 밴드를 새로 정의하지 않는다. publish의 enhancer가 표시 용어를 하단·상단 밴드로 치환하고 연결 태그를 재적용한다. raw 프로젝트와 가격·비율·계산식은 수정하지 않는다.
 
+피보나치 전체 화면 구성은 같은 폴더의 `dashboard-view.mjs`와 `.css`가 담당한다. 기존 밴드 모듈 실행 후 원본 분포·근접 레벨·고유 기준·확장 매트릭스 DOM을 새 레이아웃으로 옮긴다. 히트 스트립은 기간 선택 버튼과 상세 패널로 확장한다. `enhance-fib.mjs`가 새 화면 연결도 재적용한다.
+
 기존 점수 입력 계약은 `items[].symbol/display/score/direction/band`와 `generated_at`, 표시 설정의 bands/sort/filter/tile을 중심으로 확인한다. `details`가 없는 스냅샷은 화면이 안내 문구로 처리하므로 무조건 오류로 만들지 않는다. details가 있으면 components의 `points_long/points_short`는 숫자여야 한다. 실제 의미·배점은 원본 설정/계산 코드를 따른다.
 
 새 시장 항목은 `id/market/symbol/name/groups/currency/price/change_pct/updated_at/source`를 사용하며 결측 가격은 null이다. Python 일봉의 `bar_date`는 거래일 날짜이고 자정 표식을 실제 체결 시각으로 표시하지 않는다. 주식 시가총액은 별도의 출처·시각이다. Python 모드의 Cloudflare Cron은 파일 경과 시간만 확인하며 Python을 실행하지 않는다. 수동 웹 모드 캐시는 24시간 보존과 15분 신선도를 구분하는 데이터센터별 캐시다. 무료 데이터 수집·종가 중심 요구는 [선택 기록](../../../../docs/market-data-options.md)을 따른다.

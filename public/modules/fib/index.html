@@ -54,6 +54,7 @@
   details summary:focus-visible{outline:1px solid #5ba4ff}
 </style><meta name="viewport" content="width=device-width, initial-scale=1">
 <link id="pnl404-fib-rise-style" rel="stylesheet" href="./zone-visualization.css">
+<link id="pnl404-fib-dashboard-style" rel="stylesheet" href="./dashboard-view.css">
 </head><body>
 <h1 id="t"></h1>
 <div id="wrap">
@@ -109,4 +110,5 @@ for(const name of D.levels){const cls=(name=='#1'||name=='#2')?'red':(name=='#7'
   m+='<tr class="'+cls+edge+'"><td>'+name+'</td>'+D.distinct.map(d=>{const r=d.rows.find(x=>x.name==name);if(!r||r.price<=0)return '<td class="r dim">—</td>';const here=d.pos.below&&d.pos.below.name==name;return '<td class="r'+(here?' here':'')+'">'+f(r.price)+'</td>'}).join('')+'</tr>'}
 document.getElementById('mx').innerHTML=m;
 </script><script id="pnl404-fib-rise-script" type="module" src="./zone-visualization.mjs"></script>
+<script id="pnl404-fib-dashboard-script" type="module" src="./dashboard-view.mjs"></script>
 </body></html>
